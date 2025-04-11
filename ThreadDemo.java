@@ -1,0 +1,224 @@
+import java.util.concurrent.*;
+import java.util.*;
+
+public class ThreadDemo {
+    // Queue of customers waiting for a teller
+    static Queue<Customer> customerQueue = new LinkedList<>();
+    static Semaphore queueLock = new Semaphore(1);
+    static Semaphore customerAvailable = new Semaphore(0); // signals when customer is available
+    static Semaphore managerAvailable = new Semaphore(1); // signals when manager is available
+
+
+    static class Teller extends Thread {
+        int id;
+
+        Teller(int id) {
+            this.id = id;
+        }
+
+        public void run() {
+            try {
+                while (true) {
+
+                    System.out.println(this.id+ " is ready to serve");
+                    System.out.println(this.id+ " is waiting for customer");
+
+
+
+                    // Wait for a customer
+                    customerAvailable.acquire();
+
+                    queueLock.acquire();
+                    Customer customer = customerQueue.poll();
+                    queueLock.release();
+
+                    if (customer == null) continue;
+
+                    // Tell the customer "Hi"
+                    System.out.println("Teller " + id + ": Hi, Customer " + customer.id);
+
+                    // customer to reply
+                    customer.greeted.release();  // Let customer reply
+                   
+
+                    // Wait for customer to reply
+                    customer.replied.acquire();
+
+
+                    //do action
+                    Understand(customer);
+
+
+                    //done
+                    System.out.println("Teller " + id + ": Done talking to Customer " + customer.id);
+                }
+            } catch (Exception e) {
+                System.err.println("Teller error: " + e);
+            }
+        }
+
+        private void Understand (Customer c)
+        {
+            try {
+            Safe s= new Safe();
+
+            if (c.deposit){
+            System.out.println("ok customer you want to deposit");
+
+
+            }
+            if (c.withdraw){
+            System.out.println("ok customer you want to withdraw getting the manager ");
+           
+
+            managerAvailable.acquire();//wait for manager
+            Manager m= new Manager();
+
+
+            }
+        } catch (Exception e) {
+            System.err.println("Teller error: " + e);
+        }
+        }
+
+
+
+
+
+
+
+    }
+
+
+
+    static class Bank
+    {
+        int numberOfCustomers;
+    }
+
+
+    static class Safe 
+    {
+
+    }
+
+
+    static class Manager
+    {
+        public Manager()
+        {
+
+        try {
+
+            managerAvailable.release();
+
+            System.out.println("im getting the money");
+
+
+        } catch (Exception e) {
+            System.err.println("manager error: " + e);
+        }
+
+
+
+        }
+    }
+
+
+
+
+    static class Customer extends Thread {
+        int id;
+        Semaphore greeted = new Semaphore(0); // Wait for teller to greet
+        Semaphore replied = new Semaphore(0); 
+        boolean deposit=false; 
+        boolean withdraw=false;
+        Customer(int id) {
+            this.id = id;
+            Decision();
+            customerActions();
+
+        }
+
+
+        public void customerActions()
+        {
+            System.out.println("Customer - "+ this.id);
+
+            System.out.println("Going to the bank");
+            System.out.println("Entering the bank");
+            System.out.println("Getting in line");
+            System.out.println("Selecting teller");
+
+
+
+
+        }
+
+
+
+
+        public void Decision()
+        {
+            Math.random();
+            int randomNum = (int)(Math.random() * 2); // 0 to 1
+
+            if (randomNum==0)
+            {
+                System.out.println(this.id+" customer wants to deposit ");
+            deposit=true;}
+            else if (randomNum==1){
+                System.out.println(this.id+" customer wants to withdraw ");
+
+            withdraw=true;
+            }
+
+        }
+
+        public void run() {
+            try {
+                
+                queueLock.acquire();
+                customerQueue.add(this);//quue add
+                queueLock.release();
+
+                // Signal a teller that a customer is waiting
+                customerAvailable.release();
+
+                // Wait for the teller to greet
+                greeted.acquire();
+
+                //  respond
+                if(deposit)
+                System.out.println("Customer " + id + ": Hello, Teller i would like to deposit ");
+                else if (withdraw)
+                System.out.println("Customer " + id + ": Hello, Teller i would like to withdraw ");
+
+
+
+
+
+                // Tell the teller that the customer is done replying
+                replied.release();
+            } catch (Exception e) {
+                System.err.println("Customer error: " + e);
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        int numTellers = 3;
+        int numCustomers = 5;
+
+        // Start tellers
+        for (int i = 0; i < numTellers; i++) {
+            new Teller(i).start();
+        }
+
+        // Start customers
+        for (int i = 0; i < numCustomers; i++) {
+            new Customer(i).start();
+            try { Thread.sleep(200); } catch (InterruptedException ignored) {}
+        }
+    }
+}
