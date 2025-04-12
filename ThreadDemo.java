@@ -20,8 +20,8 @@ public class ThreadDemo {
             try {
                 while (true) {
 
-                    System.out.println(this.id+ " is ready to serve");
-                    System.out.println(this.id+ " is waiting for customer");
+                    System.out.println("Teller "+this.id+ "[]: is ready to serve");
+                    System.out.println("Teller "+this.id+ "[]: is waiting for a customer");
 
 
 
@@ -33,6 +33,7 @@ public class ThreadDemo {
                     queueLock.release();
 
                     if (customer == null) continue;
+                    customer.chooseTeller(this);
 
                     // Tell the customer "Hi"
                     System.out.println("Teller " + id + ": Hi, Customer " + customer.id);
@@ -63,12 +64,12 @@ public class ThreadDemo {
             Safe s= new Safe();
 
             if (c.deposit){
-            System.out.println("ok customer you want to deposit");
+            System.out.println("Teller "+this.id+ " ok customer you want to deposit");
 
 
             }
             if (c.withdraw){
-            System.out.println("ok customer you want to withdraw getting the manager ");
+            System.out.println("Teller "+this.id+" ok customer you want to withdraw getting the manager ");
            
 
             managerAvailable.acquire();//wait for manager
@@ -112,7 +113,7 @@ public class ThreadDemo {
 
             managerAvailable.release();
 
-            System.out.println("im getting the money");
+            System.out.println(" im getting the money");
 
 
         } catch (Exception e) {
@@ -135,20 +136,16 @@ public class ThreadDemo {
         boolean withdraw=false;
         Customer(int id) {
             this.id = id;
-            Decision();
-            customerActions();
-
+            
         }
 
 
         public void customerActions()
         {
-            System.out.println("Customer - "+ this.id);
 
-            System.out.println("Going to the bank");
-            System.out.println("Entering the bank");
-            System.out.println("Getting in line");
-            System.out.println("Selecting teller");
+            System.out.println("Customer "+this.id+" : Going to the bank");
+            System.out.println("Customer "+this.id+" : Entering the bank");
+            System.out.println("Customer "+this.id+" : Getting in line");
 
 
 
@@ -165,18 +162,29 @@ public class ThreadDemo {
 
             if (randomNum==0)
             {
-                System.out.println(this.id+" customer wants to deposit ");
+                System.out.println("Customer "+this.id+"  wants to deposit ");
             deposit=true;}
             else if (randomNum==1){
-                System.out.println(this.id+" customer wants to withdraw ");
+                System.out.println("Customer "+this.id+"  wants to withdraw ");
 
             withdraw=true;
             }
 
         }
 
+
+        public void chooseTeller(Teller t)
+        {
+            System.out.println("Customer "+this.id+ " Chooses Teller "+t.id);
+        }
+
         public void run() {
             try {
+
+
+                Decision();
+                 customerActions();
+
                 
                 queueLock.acquire();
                 customerQueue.add(this);//quue add
@@ -218,7 +226,7 @@ public class ThreadDemo {
         // Start customers
         for (int i = 0; i < numCustomers; i++) {
             new Customer(i).start();
-            try { Thread.sleep(200); } catch (InterruptedException ignored) {}
+           
         }
     }
 }
