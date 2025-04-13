@@ -7,6 +7,7 @@ public class ThreadDemo {
     static Semaphore queueLock = new Semaphore(1);
     static Semaphore customerAvailable = new Semaphore(0); // signals when customer is available
     static Semaphore managerAvailable = new Semaphore(1); // signals when manager is available
+    static Semaphore managerDone = new Semaphore(0);  
 
 
     static class Teller extends Thread {
@@ -73,7 +74,16 @@ public class ThreadDemo {
            
 
             managerAvailable.acquire();//wait for manager
-            Manager m= new Manager();
+            Manager m= new Manager(c);
+            m.start(); // start manager thread
+            managerDone.acquire(); 
+
+            System.out.println("Teller "+this.id+" handling deposit transaction ");
+            System.out.println("Teller "+this.id+" going to safe ");
+            System.out.println("Teller "+this.id+" entering safe ");
+            System.out.println("Teller "+this.id+" leaving safe ");
+            System.out.println("Teller "+this.id+" giving money ");
+
 
 
             }
@@ -103,28 +113,26 @@ public class ThreadDemo {
 
     }
 
-
-    static class Manager
-    {
-        public Manager()
-        {
-
-        try {
-
-            managerAvailable.release();
-
-            System.out.println(" im getting the money");
-
-
-        } catch (Exception e) {
-            System.err.println("manager error: " + e);
+    static class Manager extends Thread {
+        Customer customer;
+    
+        Manager(Customer c) {
+            this.customer = c;
+            
         }
-
-
-
+    
+        public void run() {
+            try {
+                System.out.println("Manager: Getting money for Customer " + customer.id);
+                Thread.sleep(2000); 
+                managerDone.release(); // signal teller that manager is done
+                managerAvailable.release(); // manager is now available 
+            } catch (Exception e) {
+                System.err.println("Manager error: " + e);
+            } 
         }
     }
-
+    
 
 
 
@@ -216,7 +224,7 @@ public class ThreadDemo {
 
     public static void main(String[] args) {
         int numTellers = 3;
-        int numCustomers = 5;
+        int numCustomers = 15;
 
         // Start tellers
         for (int i = 0; i < numTellers; i++) {
@@ -226,7 +234,7 @@ public class ThreadDemo {
         // Start customers
         for (int i = 0; i < numCustomers; i++) {
             new Customer(i).start();
-           
+            try { Thread.sleep(200); } catch (InterruptedException ignored) {}
         }
     }
 }
