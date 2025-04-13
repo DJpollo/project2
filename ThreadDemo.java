@@ -20,7 +20,7 @@ public class ThreadDemo {
         public void run() {
             try {
                 while (true) {
-
+                    
                     System.out.println("Teller "+this.id+ "[]: is ready to serve");
                     System.out.println("Teller "+this.id+ "[]: is waiting for a customer");
 
@@ -33,11 +33,10 @@ public class ThreadDemo {
                     Customer customer = customerQueue.poll();
                     queueLock.release();
 
-                    if (customer == null) continue;
                     customer.chooseTeller(this);
 
                     // Tell the customer "Hi"
-                    System.out.println("Teller " + id + ": Hi, Customer " + customer.id);
+                    System.out.println("Teller " + id + "[Customer "+customer.id+"] Hi, Customer ");
 
                     // customer to reply
                     customer.greeted.release();  // Let customer reply
@@ -52,7 +51,9 @@ public class ThreadDemo {
 
 
                     //done
-                    System.out.println("Teller " + id + ": Done talking to Customer " + customer.id);
+                    System.out.println("Teller " + id + "[Customer "+customer.id+"]: Done talking to customer ");
+                
+                
                 }
             } catch (Exception e) {
                 System.err.println("Teller error: " + e);
@@ -62,7 +63,6 @@ public class ThreadDemo {
         private void Understand (Customer c)
         {
             try {
-            Safe s= new Safe();
 
             if (c.deposit){
             System.out.println("Teller "+this.id+ " ok customer you want to deposit");
@@ -78,11 +78,11 @@ public class ThreadDemo {
             m.start(); // start manager thread
             managerDone.acquire(); 
 
-            System.out.println("Teller "+this.id+" handling deposit transaction ");
-            System.out.println("Teller "+this.id+" going to safe ");
-            System.out.println("Teller "+this.id+" entering safe ");
-            System.out.println("Teller "+this.id+" leaving safe ");
-            System.out.println("Teller "+this.id+" giving money ");
+            System.out.println("Teller "+this.id+ "[Customer "+c.id+"]"+": handling deposit transaction ");
+            System.out.println("Teller "+this.id+ "[Customer "+c.id+"]"+": going to safe ");
+            System.out.println("Teller "+this.id+ "[Customer "+c.id+"]"+": entering safe ");
+            System.out.println("Teller "+this.id+ "[Customer "+c.id+"]"+": leaving safe ");
+            System.out.println("Teller "+this.id+ "[Customer "+c.id+"]"+":giving money ");
 
 
 
@@ -102,16 +102,6 @@ public class ThreadDemo {
 
 
 
-    static class Bank
-    {
-        int numberOfCustomers;
-    }
-
-
-    static class Safe 
-    {
-
-    }
 
     static class Manager extends Thread {
         Customer customer;
@@ -123,8 +113,11 @@ public class ThreadDemo {
     
         public void run() {
             try {
-                System.out.println("Manager: Getting money for Customer " + customer.id);
-                Thread.sleep(2000); 
+                System.out.println("Manager: Approving money for Customer " + customer.id);
+                Math.random();
+                int randomNum = (int)(Math.random() * 30);
+                
+                Thread.sleep(randomNum); 
                 managerDone.release(); // signal teller that manager is done
                 managerAvailable.release(); // manager is now available 
             } catch (Exception e) {
@@ -151,9 +144,9 @@ public class ThreadDemo {
         public void customerActions()
         {
 
-            System.out.println("Customer "+this.id+" : Going to the bank");
-            System.out.println("Customer "+this.id+" : Entering the bank");
-            System.out.println("Customer "+this.id+" : Getting in line");
+            System.out.println("Customer "+this.id+"[]: Going to the bank");
+            System.out.println("Customer "+this.id+"[]: Entering the bank");
+            System.out.println("Customer "+this.id+"[]: Getting in line");
 
 
 
@@ -170,10 +163,10 @@ public class ThreadDemo {
 
             if (randomNum==0)
             {
-                System.out.println("Customer "+this.id+"  wants to deposit ");
+                System.out.println("Customer "+this.id+"[]: wants to deposit ");
             deposit=true;}
             else if (randomNum==1){
-                System.out.println("Customer "+this.id+"  wants to withdraw ");
+                System.out.println("Customer "+this.id+"[]: wants to withdraw ");
 
             withdraw=true;
             }
@@ -183,7 +176,7 @@ public class ThreadDemo {
 
         public void chooseTeller(Teller t)
         {
-            System.out.println("Customer "+this.id+ " Chooses Teller "+t.id);
+            System.out.println("Customer "+this.id+ "[Teller "+t.id+"]: Chooses teller ");
         }
 
         public void run() {
@@ -206,9 +199,9 @@ public class ThreadDemo {
 
                 //  respond
                 if(deposit)
-                System.out.println("Customer " + id + ": Hello, Teller i would like to deposit ");
+                System.out.println("Customer " + id + "[]: Hello, Teller i would like to deposit ");
                 else if (withdraw)
-                System.out.println("Customer " + id + ": Hello, Teller i would like to withdraw ");
+                System.out.println("Customer " + id + "[]: Hello, Teller i would like to withdraw ");
 
 
 
@@ -235,6 +228,9 @@ public class ThreadDemo {
         for (int i = 0; i < numCustomers; i++) {
             new Customer(i).start();
             try { Thread.sleep(200); } catch (InterruptedException ignored) {}
+
+            if(i==14)
+            System.out.println("no more customers close bank");
         }
     }
 }
