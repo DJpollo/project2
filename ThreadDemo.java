@@ -8,6 +8,8 @@ public class ThreadDemo {
     static Semaphore customerAvailable = new Semaphore(0); // signals when customer is available
     static Semaphore managerAvailable = new Semaphore(1); // signals when manager is available
     static Semaphore managerDone = new Semaphore(0);  
+    static int numofCust=50;
+    
 
 
     static class Teller extends Thread {
@@ -20,11 +22,21 @@ public class ThreadDemo {
         public void run() {
             try {
                 while (true) {
+
+
                     
                     System.out.println("Teller "+this.id+ "[]: is ready to serve");
                     System.out.println("Teller "+this.id+ "[]: is waiting for a customer");
 
 
+                    if(numofCust==0)
+                    {
+                        System.out.println("No more customers");
+                        System.out.println("The bank is closed for the day");
+
+                        System.exit(0);
+
+                    }
 
                     // Wait for a customer
                     customerAvailable.acquire();
@@ -32,6 +44,8 @@ public class ThreadDemo {
                     queueLock.acquire();
                     Customer customer = customerQueue.poll();
                     queueLock.release();
+
+                       
 
                     customer.chooseTeller(this);
 
@@ -156,6 +170,7 @@ public class ThreadDemo {
 
 
 
+
         public void Decision()
         {
             Math.random();
@@ -217,7 +232,7 @@ public class ThreadDemo {
 
     public static void main(String[] args) {
         int numTellers = 3;
-        int numCustomers = 15;
+        int numCustomers = 50;
 
         // Start tellers
         for (int i = 0; i < numTellers; i++) {
@@ -227,10 +242,10 @@ public class ThreadDemo {
         // Start customers
         for (int i = 0; i < numCustomers; i++) {
             new Customer(i).start();
+            numofCust--;
             try { Thread.sleep(200); } catch (InterruptedException ignored) {}
 
-            if(i==14)
-            System.out.println("no more customers close bank");
+           
         }
     }
 }
