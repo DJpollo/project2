@@ -1,7 +1,7 @@
 import java.util.concurrent.*;
 import java.util.*;
 
-public class ThreadDemo {
+public class Project2 {
     // Queue of customers waiting for a teller
     static Queue<Customer> customerQueue = new LinkedList<>();
     static Semaphore queueLock = new Semaphore(1);
