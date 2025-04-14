@@ -7,7 +7,7 @@ public class ThreadDemo {
     static Semaphore queueLock = new Semaphore(1);
     static Semaphore customerAvailable = new Semaphore(0); // signals when customer is available
     static Semaphore managerAvailable = new Semaphore(1); // signals when manager is available
-    static Semaphore managerDone = new Semaphore(0);  
+    static Semaphore managerDone = new Semaphore(0);  //signals when the manager is done. mostly used to simulte him working
     static int numofCust=50;
     
 
@@ -29,7 +29,7 @@ public class ThreadDemo {
                     System.out.println("Teller "+this.id+ "[]: is waiting for a customer");
 
 
-                    if(numofCust==0)
+                    if(numofCust==0)//global counter used 
                     {
                         System.out.println("No more customers");
                         System.out.println("The bank is closed for the day");
@@ -42,14 +42,14 @@ public class ThreadDemo {
                     customerAvailable.acquire();
 
                     queueLock.acquire();
-                    Customer customer = customerQueue.poll();
+                    Customer customer = customerQueue.poll();//grab the customer
                     queueLock.release();
 
                        
 
-                    customer.chooseTeller(this);
+                    customer.chooseTeller(this);//customer grab currrent teller 
 
-                    // Tell the customer "Hi"
+                    // Teller talk to customer
                     System.out.println("Teller " + id + "[Customer "+customer.id+"] Hi, Customer ");
 
                     // customer to reply
@@ -74,7 +74,7 @@ public class ThreadDemo {
             }
         }
 
-        private void Understand (Customer c)
+        private void Understand (Customer c)//teller get choice of the customer
         {
             try {
 
@@ -146,7 +146,7 @@ public class ThreadDemo {
     static class Customer extends Thread {
         int id;
         Semaphore greeted = new Semaphore(0); // Wait for teller to greet
-        Semaphore replied = new Semaphore(0); 
+        Semaphore replied = new Semaphore(0); //let know you replied
         boolean deposit=false; 
         boolean withdraw=false;
         Customer(int id) {
@@ -157,14 +157,9 @@ public class ThreadDemo {
 
         public void customerActions()
         {
-
             System.out.println("Customer "+this.id+"[]: Going to the bank");
             System.out.println("Customer "+this.id+"[]: Entering the bank");
             System.out.println("Customer "+this.id+"[]: Getting in line");
-
-
-
-
         }
 
 
@@ -199,7 +194,7 @@ public class ThreadDemo {
 
 
                 Decision();
-                 customerActions();
+                customerActions();
 
                 
                 queueLock.acquire();
